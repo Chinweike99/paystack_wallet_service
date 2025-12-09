@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import configuration from './config/configuration';
 import { ApiKeyModule } from './api-key/api-key.module';
+import { WalletModule } from './wallets/wallet.module';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { ApiKeyModule } from './api-key/api-key.module';
     DatabaseModule,
     AuthModule,
     ApiKeyModule,
-    // WalletModule,
+    WalletModule,
   ],
 })
 export class AppModule {}
