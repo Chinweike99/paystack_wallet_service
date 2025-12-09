@@ -1,16 +1,16 @@
 import {
   Controller,
   Get,
-  Req,
-  UseGuards,
+  Query,
   Res,
   HttpStatus,
   Post,
   Body,
   HttpCode,
   UnauthorizedException,
+  BadRequestException,
+  Req,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
 import type { Response, Request } from 'express';
@@ -18,7 +18,7 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiExcludeEndpoint,
+  ApiQuery,
 } from '@nestjs/swagger';
 
 @ApiTags('Authentication')
@@ -28,29 +28,78 @@ export class AuthController {
 
   @Get('google')
   @Public()
-  @UseGuards(AuthGuard('google'))
-  @ApiOperation({ summary: 'Initiate Google OAuth flow' })
-  @ApiResponse({ status: 302, description: 'Redirects to Google' })
-  async googleAuth() {
-    // Authentication handled by Google Strategy
+  @ApiOperation({ summary: 'Initiate Google Sign-In flow' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Returns Google authentication URL',
+    schema: {
+      example: {
+        google_auth_url: 'https://accounts.google.com/o/oauth2/auth?response_type=code&...'
+      }
+    }
+  })
+  @ApiResponse({ status: 400, description: 'Invalid request' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  initiateGoogleAuth(@Res({ passthrough: true }) res: Response) {
+    try {
+      const authUrl = this.authService.getAuthUrl();
+      
+      return {
+        google_auth_url: authUrl,
+        message: 'Use this URL to authenticate with Google',
+      };
+    } catch (error) {
+      throw new BadRequestException('Failed to generate authentication URL');
+    }
   }
 
   @Get('google/callback')
   @Public()
-  @UseGuards(AuthGuard('google'))
-  @ApiExcludeEndpoint()
-  async googleAuthRedirect(@Req() req, @Res() res: Response) {
-    try {
-      const user = await this.authService.validateOrCreateUser(req.user);
-      const result = await this.authService.login(user);
+  @ApiOperation({ summary: 'Google OAuth callback endpoint' })
+  @ApiQuery({ name: 'code', description: 'Authorization code from Google', required: true })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'User authenticated successfully',
+    schema: {
+      example: {
+        access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        token_type: 'Bearer',
+        user: {
+          user_id: 'uuid',
+          email: 'user@example.com',
+          firstName: 'John',
+          lastName: 'Doe',
+          picture: 'https://profile_picture_url'
+        },
+        message: 'Authentication successful'
+      }
+    }
+  })
+  @ApiResponse({ status: 400, description: 'Missing authorization code' })
+  @ApiResponse({ status: 401, description: 'Invalid authorization code' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  async googleCallback(@Query('code') code: string) {
+    if (!code) {
+      throw new BadRequestException('Authorization code is required');
+    }
 
-      // Redirect to frontend with token in query parameter
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-      return res.redirect(
-        `${frontendUrl}/auth/callback?token=${result.access_token}&user=${encodeURIComponent(JSON.stringify(result.user))}`,
-      );
+    try {
+      const { user, accessToken } = await this.authService.handleCallback(code);
+      
+      return {
+        access_token: accessToken,
+        token_type: 'Bearer',
+        user: {
+          user_id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          picture: user.picture,
+        },
+        message: 'Authentication successful',
+      };
     } catch (error) {
-      return res.redirect(`${process.env.FRONTEND_URL}/auth/error`);
+      throw error;
     }
   }
 
@@ -59,13 +108,27 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Refresh JWT token' })
   @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
+  @ApiResponse({ status: 401, description: 'Invalid token' })
   async refreshToken(@Body() body: { token: string }) {
     try {
       const decoded = this.authService['jwtService'].verify(body.token, {
         ignoreExpiration: true,
       });
       const user = await this.authService.validateUser(decoded);
-      return this.authService.login(user);
+      
+      const accessToken = this.authService['generateJwtToken'](user);
+      
+      return {
+        access_token: accessToken,
+        token_type: 'Bearer',
+        user: {
+          user_id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          picture: user.picture,
+        },
+      };
     } catch (error) {
       throw new UnauthorizedException('Invalid token');
     }
