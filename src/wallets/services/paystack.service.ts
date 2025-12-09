@@ -12,9 +12,9 @@ export class PaystackService {
   private readonly logger = new Logger(PaystackService.name);
 
   constructor(private configService: ConfigService) {
-    this.secretKey = this.configService.get('paystack.secretKey');
-    this.publicKey = this.configService.get('paystack.publicKey');
-    this.webhookSecret = this.configService.get('paystack.webhookSecret');
+    this.secretKey = this.configService.get('PAYSTACK_SECRET_KEY') as string;
+    this.publicKey = this.configService.get('PAYSTACK_PUBLIC_KEY') as string;
+    this.webhookSecret = this.configService.get('PAYSTACK_WEBHOOK_SECRET') as string;
   }
 
   private getHeaders() {

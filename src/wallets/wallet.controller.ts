@@ -105,15 +105,16 @@ export class WalletController {
   @ApiQuery({ name: 'status', required: false, enum: ['pending', 'success', 'failed'] })
   async getTransactions(
     @Request() req,
-    @Query(new ZodValidationPipe(transactionsQuerySchema)) query: TransactionsQueryDto,
+    @Query() query: any,
   ) {
+    const validatedQuery = new ZodValidationPipe(transactionsQuerySchema).transform(query);
     return this.walletService.getTransactionHistory(
       req.user.id,
       {
-        limit: query.limit as any,
-        page: query.page as any,
-        type: query.type as any,
-        status: query.status as any,
+        limit: validatedQuery.limit,
+        page: validatedQuery.page,
+        type: validatedQuery.type,
+        status: validatedQuery.status,
       },
     );
   }
