@@ -7,10 +7,14 @@ import { DatabaseModule } from '../database/database.module';
 import { AuthController } from './auth.contoller';
 import { GoogleStrategy } from './strategy/google.strategy';
 import { JwtStrategy } from './strategy/jwt.strategy';
+import { JwtAuthGuard } from './strategy/jwt-auth.guard';
+import { CompositeAuthGuard } from './strategy/composite-auth.guard';
+import { ApiKeyModule } from '../api-key/api-key.module';
 
 @Module({
   imports: [
     DatabaseModule,
+    ApiKeyModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -24,7 +28,7 @@ import { JwtStrategy } from './strategy/jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy, JwtStrategy],
-  exports: [AuthService, JwtModule],
+  providers: [AuthService, GoogleStrategy, JwtStrategy, JwtAuthGuard, CompositeAuthGuard],
+  exports: [AuthService, JwtModule, JwtAuthGuard, CompositeAuthGuard],
 })
 export class AuthModule {}

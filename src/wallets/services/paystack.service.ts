@@ -1,0 +1,103 @@
+import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
+import * as crypto from 'crypto';
+
+@Injectable()
+export class PaystackService {
+  private readonly baseURL = 'https://api.paystack.co';
+  private readonly secretKey: string;
+  private readonly publicKey: string;
+  private readonly webhookSecret: string;
+  private readonly logger = new Logger(PaystackService.name);
+
+  constructor(private configService: ConfigService) {
+    this.secretKey = this.configService.get('paystack.secretKey');
+    this.publicKey = this.configService.get('paystack.publicKey');
+    this.webhookSecret = this.configService.get('paystack.webhookSecret');
+  }
+
+  private getHeaders() {
+    return {
+      Authorization: `Bearer ${this.secretKey}`,
+      'Content-Type': 'application/json',
+    };
+  }
+
+  async initializeTransaction(
+    email: string,
+    amount: number,
+    metadata?: any,
+  ): Promise<any> {
+    try {
+      const response = await axios.post(
+        `${this.baseURL}/transaction/initialize`,
+        {
+          email,
+          amount: amount * 100, // Convert to kobo
+          metadata,
+          callback_url: `${this.configService.get('frontend.url')}/wallet/deposit/callback`,
+        },
+        {
+          headers: this.getHeaders(),
+        }
+      );
+
+      if (response.data.status && response.data.data) {
+        return {
+          reference: response.data.data.reference,
+          authorization_url: response.data.data.authorization_url,
+          access_code: response.data.data.access_code,
+        };
+      }
+
+      throw new Error('Failed to initialize transaction');
+    } catch (error) {
+      this.logger.error('Paystack initialization error:', error.response?.data || error.message);
+      throw new InternalServerErrorException('Failed to initialize payment');
+    }
+  }
+
+  async verifyTransaction(reference: string): Promise<any> {
+    try {
+      const response = await axios.get(
+        `${this.baseURL}/transaction/verify/${reference}`,
+        {
+          headers: this.getHeaders(),
+        }
+      );
+
+      if (response.data.status && response.data.data) {
+        const data = response.data.data;
+        return {
+          status: data.status === 'success',
+          amount: data.amount / 100, // Convert from kobo
+          reference: data.reference,
+          metadata: data.metadata,
+          paid_at: data.paid_at,
+          currency: data.currency,
+          customer: data.customer,
+        };
+      }
+
+      return { status: false };
+    } catch (error) {
+      this.logger.error('Paystack verification error:', error.response?.data || error.message);
+      return { status: false };
+    }
+  }
+
+  verifyWebhookSignature(payload: any, signature: string): boolean {
+    if (!this.webhookSecret) {
+      this.logger.warn('Webhook secret not configured');
+      return true; // In development, you might want to skip verification
+    }
+
+    const hash = crypto
+      .createHmac('sha512', this.webhookSecret)
+      .update(JSON.stringify(payload))
+      .digest('hex');
+      
+    return hash === signature;
+  }
+}
