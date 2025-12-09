@@ -5,6 +5,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import configuration from './config/configuration';
+import { ApiKeyModule } from './api-key/api-key.module';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import configuration from './config/configuration';
     ScheduleModule.forRoot(),
     DatabaseModule,
     AuthModule,
-    // ApiKeyModule,
+    ApiKeyModule,
     // WalletModule,
   ],
 })
