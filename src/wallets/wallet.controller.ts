@@ -107,14 +107,14 @@ export class WalletController {
     @Request() req,
     @Query() query: any,
   ) {
-    const validatedQuery = new ZodValidationPipe(transactionsQuerySchema).transform(query);
+    const validatedQuery = new ZodValidationPipe(transactionsQuerySchema).transform(query) as unknown as TransactionsQueryDto;
     return this.walletService.getTransactionHistory(
       req.user.id,
       {
-        limit: validatedQuery.limit,
-        page: validatedQuery.page,
-        type: validatedQuery.type,
-        status: validatedQuery.status,
+        limit: validatedQuery.limit as any,
+        page: validatedQuery.page as any,
+        type: validatedQuery.type as any,
+        status: validatedQuery.status as any,
       },
     );
   }
