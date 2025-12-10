@@ -18,8 +18,8 @@ import { ApiKey } from '../entities/api-key.entity';
             password: configService.get('DB_PASSWORD'),
             database: configService.get('DB_DATABASE'),
             entities: [User, Wallet, Transaction, ApiKey],
-            // synchronize: true,
-            synchronize: false,
+            synchronize: true,
+            // synchronize: false,
             logging: configService.get('NODE_ENV') === 'development',
             extra: {
                 ssl: {

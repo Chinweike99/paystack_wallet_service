@@ -7,6 +7,8 @@ import { DatabaseModule } from './database/database.module';
 import configuration from './config/configuration';
 import { ApiKeyModule } from './api-key/api-key.module';
 import { WalletModule } from './wallets/wallet.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -24,5 +26,7 @@ import { WalletModule } from './wallets/wallet.module';
     ApiKeyModule,
     WalletModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
