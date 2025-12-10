@@ -316,5 +316,3 @@ This project is licensed under the UNLICENSED License.
 - [Zod](https://zod.dev/) - TypeScript-first schema validation
 
 ---
-
-**Built with ❤️ using NestJS**
