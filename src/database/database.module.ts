@@ -22,9 +22,9 @@ import { ApiKey } from '../entities/api-key.entity';
             // synchronize: false,
             logging: configService.get('NODE_ENV') === 'development',
             extra: {
-                // ssl: {
-                //   rejectUnauthorized: false,
-                // },
+                ssl: {
+                  rejectUnauthorized: false,
+                },
                 max: 20,
                 connectionTimeoutMillis: 10000,
             },
