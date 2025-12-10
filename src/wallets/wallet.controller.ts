@@ -19,6 +19,7 @@ import {
   ApiBearerAuth,
   ApiHeader,
   ApiQuery,
+  ApiBody,
 } from '@nestjs/swagger';
 import { DepositDto, depositSchema } from './dto/deposit.dto';
 import { TransferDto, transferSchema } from './dto/transfer.dto';
@@ -53,10 +54,12 @@ export class WalletController {
   @ApiResponse({ status: 400, description: 'Invalid amount' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
+  @ApiBody({ type: DepositDto })
   async deposit(
     @Request() req,
-    @Body(new ZodValidationPipe(depositSchema)) depositDto: DepositDto,
+    @Body() body: any,
   ) {
+    const depositDto = new ZodValidationPipe(depositSchema).transform(body) as DepositDto;
     return this.walletService.initializeDeposit(
       req.user.id,
       depositDto.amount,
@@ -82,10 +85,12 @@ export class WalletController {
   @ApiOperation({ summary: 'Transfer funds to another wallet' })
   @ApiResponse({ status: 200, description: 'Transfer completed successfully' })
   @ApiResponse({ status: 400, description: 'Invalid transfer request' })
+  @ApiBody({ type: TransferDto })
   async transfer(
     @Request() req,
-    @Body(new ZodValidationPipe(transferSchema)) transferDto: TransferDto,
+    @Body() body: any,
   ) {
+    const transferDto = new ZodValidationPipe(transferSchema).transform(body) as TransferDto;
     return this.walletService.transferFunds(
       req.user.id,
       transferDto.wallet_number,
@@ -142,6 +147,41 @@ export class WalletController {
     @Param('reference') reference: string,
   ) {
     return this.walletService.verifyDepositStatus(reference, req.user.id);
+  }
+
+  @Get('deposit/callback')
+  @Public()
+  @ApiOperation({ summary: 'Paystack deposit callback' })
+  @ApiResponse({ status: 200, description: 'Payment verification result' })
+  async depositCallback(
+    @Query('reference') reference: string,
+    @Query('trxref') trxref: string,
+  ) {
+    // Use reference or trxref (Paystack can send either)
+    const ref = reference || trxref;
+    
+    if (!ref) {
+      return {
+        status: 'error',
+        message: 'No transaction reference provided',
+      };
+    }
+
+    try {
+      // Verify the transaction with Paystack
+      const result = await this.paystackService.verifyTransaction(ref);
+      
+      return {
+        status: 'success',
+        message: 'Payment verified successfully',
+        data: result,
+      };
+    } catch (error) {
+      return {
+        status: 'error',
+        message: error.message || 'Payment verification failed',
+      };
+    }
   }
 
   @Post('paystack/webhook')

@@ -36,7 +36,7 @@ export class PaystackService {
           email,
           amount: amount * 100, // Convert to kobo
           metadata,
-          callback_url: `${this.configService.get('frontend.url')}/wallet/deposit/callback`,
+          callback_url: this.configService.get('paystack.callbackUrl'),
         },
         {
           headers: this.getHeaders(),

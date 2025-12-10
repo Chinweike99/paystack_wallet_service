@@ -14,12 +14,13 @@ export default () => ({
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackUrl: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3000/auth/google/callback',
+    callbackUrl: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:4000/auth/google/callback',
   },
   paystack: {
     secretKey: process.env.PAYSTACK_SECRET_KEY,
     publicKey: process.env.PAYSTACK_PUBLIC_KEY,
     webhookSecret: process.env.PAYSTACK_WEBHOOK_SECRET,
+    callbackUrl: process.env.PAYSTACK_CALLBACK_URL || 'http://localhost:4000/wallet/deposit/callback',
   },
   frontend: {
     url: process.env.FRONTEND_URL || 'http://localhost:3000',
