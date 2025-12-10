@@ -174,6 +174,12 @@ export class WalletService {
     };
   }
 
+  async processDepositCallback(reference: string): Promise<void> {
+    // This method processes the deposit after payment callback
+    // It verifies with Paystack and credits the wallet
+    await this.completeDeposit(reference);
+  }
+
   private async completeDeposit(reference: string): Promise<void> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();

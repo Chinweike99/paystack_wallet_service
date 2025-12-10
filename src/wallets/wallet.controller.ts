@@ -171,9 +171,20 @@ export class WalletController {
       // Verify the transaction with Paystack
       const result = await this.paystackService.verifyTransaction(ref);
       
+      // If payment was successful, process the deposit and credit the wallet
+      if (result.status) {
+        await this.walletService.processDepositCallback(ref);
+        
+        return {
+          status: 'success',
+          message: 'Payment verified and wallet credited successfully',
+          data: result,
+        };
+      }
+      
       return {
-        status: 'success',
-        message: 'Payment verified successfully',
+        status: 'failed',
+        message: 'Payment verification failed',
         data: result,
       };
     } catch (error) {
