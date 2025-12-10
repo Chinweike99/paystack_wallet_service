@@ -76,8 +76,8 @@ export class AuthService {
 
       if (user) {
         // Update existing user
-        user.firstName = userInfo.given_name;
-        user.lastName = userInfo.family_name;
+        user.firstName = userInfo.given_name || userInfo.name || 'User';
+        user.lastName = userInfo.family_name || '';
         user.picture = userInfo.picture;
         
         user = await this.userRepository.save(user);
@@ -85,8 +85,8 @@ export class AuthService {
         // Create new user
         user = this.userRepository.create({
           email: userInfo.email,
-          firstName: userInfo.given_name,
-          lastName: userInfo.family_name,
+          firstName: userInfo.given_name || userInfo.name || 'User',
+          lastName: userInfo.family_name || '',
           picture: userInfo.picture,
         });
 
