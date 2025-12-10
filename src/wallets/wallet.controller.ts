@@ -124,15 +124,15 @@ export class WalletController {
     );
   }
 
-  @Get('details')
-  @UseGuards(CompositeAuthGuard)
-  @Permissions(Permission.READ)
-  @ApiBearerAuth('JWT-auth')
-  @ApiHeader({ name: 'x-api-key', required: false })
-  @ApiOperation({ summary: 'Get wallet details with recent transactions' })
-  async getWalletDetails(@Request() req) {
-    return this.walletService.getWalletDetails(req.user.id);
-  }
+  // @Get('details')
+  // @UseGuards(CompositeAuthGuard)
+  // @Permissions(Permission.READ)
+  // @ApiBearerAuth('JWT-auth')
+  // @ApiHeader({ name: 'x-api-key', required: false })
+  // @ApiOperation({ summary: 'Get wallet details with recent transactions' })
+  // async getWalletDetails(@Request() req) {
+  //   return this.walletService.getWalletDetails(req.user.id);
+  // }
 
   @Get('deposit/:reference/status')
   @UseGuards(CompositeAuthGuard)

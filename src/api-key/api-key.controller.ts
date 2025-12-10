@@ -59,12 +59,12 @@ export class ApiKeyController {
     return this.apiKeyService.rolloverApiKey(req.user.id, rolloverDto);
   }
 
-  @Get()
-  @ApiOperation({ summary: 'Get all API keys for user' })
-  @ApiResponse({ status: 200, description: 'List of API keys' })
-  async findAll(@Request() req) {
-    return this.apiKeyService.getUserApiKeys(req.user.id);
-  }
+  // @Get()
+  // @ApiOperation({ summary: 'Get all API keys for user' })
+  // @ApiResponse({ status: 200, description: 'List of API keys' })
+  // async findAll(@Request() req) {
+  //   return this.apiKeyService.getUserApiKeys(req.user.id);
+  // }
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)

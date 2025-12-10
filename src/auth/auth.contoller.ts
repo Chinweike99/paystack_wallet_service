@@ -103,55 +103,55 @@ export class AuthController {
     }
   }
 
-  @Post('refresh')
-  @Public()
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Refresh JWT token' })
-  @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
-  @ApiResponse({ status: 401, description: 'Invalid token' })
-  async refreshToken(@Body() body: { token: string }) {
-    try {
-      const decoded = this.authService['jwtService'].verify(body.token, {
-        ignoreExpiration: true,
-      });
-      const user = await this.authService.validateUser(decoded);
+  // @Post('refresh')
+  // @Public()
+  // @HttpCode(HttpStatus.OK)
+  // @ApiOperation({ summary: 'Refresh JWT token' })
+  // @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
+  // @ApiResponse({ status: 401, description: 'Invalid token' })
+  // async refreshToken(@Body() body: { token: string }) {
+  //   try {
+  //     const decoded = this.authService['jwtService'].verify(body.token, {
+  //       ignoreExpiration: true,
+  //     });
+  //     const user = await this.authService.validateUser(decoded);
       
-      const accessToken = this.authService['generateJwtToken'](user);
+  //     const accessToken = this.authService['generateJwtToken'](user);
       
-      return {
-        access_token: accessToken,
-        token_type: 'Bearer',
-        user: {
-          user_id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          picture: user.picture,
-        },
-      };
-    } catch (error) {
-      throw new UnauthorizedException('Invalid token');
-    }
-  }
+  //     return {
+  //       access_token: accessToken,
+  //       token_type: 'Bearer',
+  //       user: {
+  //         user_id: user.id,
+  //         email: user.email,
+  //         firstName: user.firstName,
+  //         lastName: user.lastName,
+  //         picture: user.picture,
+  //       },
+  //     };
+  //   } catch (error) {
+  //     throw new UnauthorizedException('Invalid token');
+  //   }
+  // }
 
-  @Post('validate')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Validate JWT token' })
-  @ApiResponse({ status: 200, description: 'Token is valid' })
-  @ApiResponse({ status: 401, description: 'Token is invalid' })
-  async validateToken(@Req() req: Request) {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      throw new UnauthorizedException('No token provided');
-    }
+  // @Post('validate')
+  // @HttpCode(HttpStatus.OK)
+  // @ApiOperation({ summary: 'Validate JWT token' })
+  // @ApiResponse({ status: 200, description: 'Token is valid' })
+  // @ApiResponse({ status: 401, description: 'Token is invalid' })
+  // async validateToken(@Req() req: Request) {
+  //   const authHeader = req.headers.authorization;
+  //   if (!authHeader) {
+  //     throw new UnauthorizedException('No token provided');
+  //   }
 
-    const token = authHeader.split(' ')[1];
-    try {
-      const decoded = this.authService['jwtService'].verify(token);
-      const user = await this.authService.validateUser(decoded);
-      return { valid: true, user };
-    } catch (error) {
-      throw new UnauthorizedException('Invalid token');
-    }
-  }
+  //   const token = authHeader.split(' ')[1];
+  //   try {
+  //     const decoded = this.authService['jwtService'].verify(token);
+  //     const user = await this.authService.validateUser(decoded);
+  //     return { valid: true, user };
+  //   } catch (error) {
+  //     throw new UnauthorizedException('Invalid token');
+  //   }
+  // }
 }
