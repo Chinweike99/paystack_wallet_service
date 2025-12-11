@@ -34,7 +34,7 @@ export class PaystackService {
         `${this.baseURL}/transaction/initialize`,
         {
           email,
-          amount: amount * 100, // Convert to kobo
+          amount: amount, 
           metadata,
           callback_url: this.configService.get('paystack.callbackUrl'),
         },
@@ -71,7 +71,7 @@ export class PaystackService {
         const data = response.data.data;
         return {
           status: data.status === 'success',
-          amount: data.amount / 100, // Convert from kobo
+          amount: data.amount / 100,
           reference: data.reference,
           metadata: data.metadata,
           paid_at: data.paid_at,
@@ -90,7 +90,7 @@ export class PaystackService {
   verifyWebhookSignature(payload: any, signature: string): boolean {
     if (!this.webhookSecret) {
       this.logger.warn('Webhook secret not configured');
-      return true; // In development, you might want to skip verification
+      return true;
     }
 
     const hash = crypto

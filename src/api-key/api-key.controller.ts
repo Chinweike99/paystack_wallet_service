@@ -17,17 +17,19 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiSecurity,
   ApiBody,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/strategy/jwt-auth.guard';
+import { CompositeAuthGuard } from 'src/auth/strategy/composite-auth.guard';
 import { CreateApiKeyDto, createApiKeySchema } from './dto/api-key.dto';
 import { RolloverApiKeyDto, rolloverApiKeySchema } from './dto/rollover-key.dto';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
 
 @ApiTags('API Keys')
 @ApiBearerAuth('JWT-auth')
+@ApiSecurity('API-key')
 @Controller('keys')
-@UseGuards(JwtAuthGuard)
+@UseGuards(CompositeAuthGuard)
 export class ApiKeyController {
   constructor(private apiKeyService: ApiKeyService) {}
 
@@ -59,12 +61,12 @@ export class ApiKeyController {
     return this.apiKeyService.rolloverApiKey(req.user.id, rolloverDto);
   }
 
-  // @Get()
-  // @ApiOperation({ summary: 'Get all API keys for user' })
-  // @ApiResponse({ status: 200, description: 'List of API keys' })
-  // async findAll(@Request() req) {
-  //   return this.apiKeyService.getUserApiKeys(req.user.id);
-  // }
+  @Get()
+  @ApiOperation({ summary: 'Get all API keys for user' })
+  @ApiResponse({ status: 200, description: 'List of API keys' })
+  async findAll(@Request() req) {
+    return this.apiKeyService.getUserApiKeys(req.user.id);
+  }
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)

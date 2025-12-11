@@ -230,25 +230,34 @@ export class WalletService {
     const event = payload.event;
     const data = payload.data;
 
-    this.logger.log(`Received webhook event: ${event}`);
+    this.logger.log(`Webhook Received - Event: ${event}, Reference: ${data?.reference || 'N/A'}`);
+    this.logger.log(`Webhook Payload: ${JSON.stringify(payload, null, 2)}`);
 
     if (event === 'charge.success') {
       const reference = data.reference;
+      const amount = data.amount; // Amount in kobo
+      const email = data.customer?.email;
+      
+      this.logger.log(`Processing successful charge - Ref: ${reference}, Amount: ${amount} kobo (${amount/100} NGN), Email: ${email}`);
       
       try {
         // Verify with Paystack first
         const verification = await this.paystackService.verifyTransaction(reference);
         
         if (!verification.status) {
-          this.logger.error(`Paystack verification failed for reference: ${reference}`);
+          this.logger.error(` Paystack verification failed for reference: ${reference}`);
           return;
         }
 
+        this.logger.log(`Paystack verification successful for ${reference}`);
         await this.completeDeposit(reference);
+        this.logger.log(`Deposit completed successfully - Reference: ${reference}`);
       } catch (error) {
-        this.logger.error(`Webhook processing error: ${error.message}`, error.stack);
+        this.logger.error(`Webhook processing error for ${reference}: ${error.message}`, error.stack);
         throw error;
       }
+    } else {
+      this.logger.log(`Unhandled webhook event: ${event}`);
     }
   }
 

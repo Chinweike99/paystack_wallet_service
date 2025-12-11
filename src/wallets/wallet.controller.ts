@@ -17,6 +17,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiSecurity,
   ApiHeader,
   ApiQuery,
   ApiBody,
@@ -44,11 +45,7 @@ export class WalletController {
   @UseGuards(CompositeAuthGuard)
   @Permissions(Permission.DEPOSIT)
   @ApiBearerAuth('JWT-auth')
-  @ApiHeader({ 
-    name: 'x-api-key', 
-    required: false,
-    description: 'API key for service-to-service access' 
-  })
+  @ApiSecurity('API-key')
   @ApiOperation({ summary: 'Initialize a deposit transaction' })
   @ApiResponse({ status: 200, description: 'Deposit initialized successfully' })
   @ApiResponse({ status: 400, description: 'Invalid amount' })
@@ -70,7 +67,7 @@ export class WalletController {
   @UseGuards(CompositeAuthGuard)
   @Permissions(Permission.READ)
   @ApiBearerAuth('JWT-auth')
-  @ApiHeader({ name: 'x-api-key', required: false })
+  @ApiSecurity('API-key')
   @ApiOperation({ summary: 'Get wallet balance' })
   @ApiResponse({ status: 200, description: 'Balance retrieved successfully' })
   async getBalance(@Request() req) {
@@ -81,7 +78,7 @@ export class WalletController {
   @UseGuards(CompositeAuthGuard)
   @Permissions(Permission.TRANSFER)
   @ApiBearerAuth('JWT-auth')
-  @ApiHeader({ name: 'x-api-key', required: false })
+  @ApiSecurity('API-key')
   @ApiOperation({ summary: 'Transfer funds to another wallet' })
   @ApiResponse({ status: 200, description: 'Transfer completed successfully' })
   @ApiResponse({ status: 400, description: 'Invalid transfer request' })
@@ -102,7 +99,7 @@ export class WalletController {
   @UseGuards(CompositeAuthGuard)
   @Permissions(Permission.READ)
   @ApiBearerAuth('JWT-auth')
-  @ApiHeader({ name: 'x-api-key', required: false })
+  @ApiSecurity('API-key')
   @ApiOperation({ summary: 'Get transaction history' })
   @ApiQuery({ name: 'limit', required: false, type: String })
   @ApiQuery({ name: 'page', required: false, type: String })
@@ -124,21 +121,21 @@ export class WalletController {
     );
   }
 
-  // @Get('details')
-  // @UseGuards(CompositeAuthGuard)
-  // @Permissions(Permission.READ)
-  // @ApiBearerAuth('JWT-auth')
-  // @ApiHeader({ name: 'x-api-key', required: false })
-  // @ApiOperation({ summary: 'Get wallet details with recent transactions' })
-  // async getWalletDetails(@Request() req) {
-  //   return this.walletService.getWalletDetails(req.user.id);
-  // }
+  @Get('list')
+  @UseGuards(CompositeAuthGuard)
+  @Permissions(Permission.READ)
+  @ApiBearerAuth('JWT-auth')
+  @ApiSecurity('API-key')
+  @ApiOperation({ summary: 'Get wallet details with recent transactions' })
+  async getWalletDetails(@Request() req) {
+    return this.walletService.getWalletDetails(req.user.id);
+  }
 
   @Get('deposit/:reference/status')
   @UseGuards(CompositeAuthGuard)
   @Permissions(Permission.READ)
   @ApiBearerAuth('JWT-auth')
-  @ApiHeader({ name: 'x-api-key', required: false })
+  @ApiSecurity('API-key')
   @ApiOperation({ summary: 'Check deposit status' })
   @ApiResponse({ status: 200, description: 'Status retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Transaction not found' })
@@ -168,10 +165,8 @@ export class WalletController {
     }
 
     try {
-      // Verify the transaction with Paystack
       const result = await this.paystackService.verifyTransaction(ref);
       
-      // If payment was successful, process the deposit and credit the wallet
       if (result.status) {
         await this.walletService.processDepositCallback(ref);
         
@@ -205,7 +200,6 @@ export class WalletController {
     @Headers('x-paystack-signature') signature: string,
     @Body() payload: any,
   ) {
-    // Verify webhook signature in production
     if (process.env.NODE_ENV === 'production') {
       const isValid = this.paystackService.verifyWebhookSignature(payload, signature);
       if (!isValid) {

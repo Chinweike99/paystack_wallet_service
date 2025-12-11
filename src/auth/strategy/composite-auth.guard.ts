@@ -31,12 +31,11 @@ export class CompositeAuthGuard implements CanActivate {
       }
     }
 
-    // Try JWT authentication
     try {
       const result = await this.jwtAuthGuard.canActivate(context);
       return result as boolean;
     } catch (error) {
-      throw new UnauthorizedException('Authentication required. Provide either JWT token or API key.');
+      throw new UnauthorizedException('Authentication required. Provide either JWT token or a valid API key.');
     }
   }
 }
