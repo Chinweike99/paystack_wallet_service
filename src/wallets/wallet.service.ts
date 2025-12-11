@@ -44,7 +44,7 @@ export class WalletService {
   async getBalance(userId: string): Promise<{ balance: number; currency: string }> {
     const wallet = await this.getWallet(userId);
     return { 
-      balance: Number(wallet.balance), 
+      balance: Number(wallet.balance) / 100, // Convert kobo to NGN for display
       currency: wallet.currency 
     };
   }

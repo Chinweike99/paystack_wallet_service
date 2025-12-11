@@ -71,7 +71,7 @@ export class PaystackService {
         const data = response.data.data;
         return {
           status: data.status === 'success',
-          amount: data.amount / 100,
+          amount: data.amount, // Keep in kobo (Paystack returns kobo)
           reference: data.reference,
           metadata: data.metadata,
           paid_at: data.paid_at,
